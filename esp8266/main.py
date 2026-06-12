@@ -1,3 +1,4 @@
+# DEPRECATED: Use esp8266/vision_servo/vision_servo.ino or PlatformIO src/main.cpp instead.
 from machine import Pin, PWM
 from umqtt.simple import MQTTClient
 import time

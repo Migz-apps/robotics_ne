@@ -1,0 +1,88 @@
+================================================================================
+BENAX SPEAKER TRACKING — COMPLETE SETUP GUIDE (YOUR MACHINE)
+================================================================================
+
+YOUR PATHS
+----------
+Python project:        C:\Users\RCA\Desktop\tempula\robotics_ne
+ESP8266 board core:    C:\Users\RCA\Downloads\esp8266          (compile tools only)
+ESP8266 sketch:        C:\Users\RCA\Downloads\vision_servo\vision_servo.ino
+Arduino IDE 2:         C:\Program Files\Arduino IDE
+Command-line flash:    robotics_ne\tools\arduino-cli.exe
+                       robotics_ne\scripts\flash-esp8266.ps1
+
+DIAGRAMS (project root)
+-----------------------
+SYSTEM_ARCHITECTURE.png  — full system blocks
+DATA_FLOW.png            — Recognize → Track → Command pipeline
+ESP8266_WIRING.png       — servo wiring
+
+NETWORK
+-------
+Wi-Fi:                 kobbie-mainoo / composure.
+PC Wi-Fi IP:           192.168.0.188
+MQTT (PC apps):        localhost:1883
+MQTT (ESP8266):        192.168.0.188:1883
+Dashboard:             http://localhost:8080
+
+================================================================================
+FASTEST WAY TO FLASH ESP8266 (pick ONE)
+================================================================================
+
+OPTION A — Arduino IDE 2 (you installed this — easiest first time)
+------------------------------------------------------------------
+1. Plug ESP8266 via USB.
+2. Open Arduino IDE 2.
+3. File → Open → C:\Users\RCA\Downloads\vision_servo\vision_servo.ino
+4. SKIP Boards Manager — your local core is already linked from:
+     C:\Users\RCA\Downloads\esp8266
+   (If board missing: run scripts\link-esp8266-arduino.ps1, restart IDE)
+5. Tools → Board → esp8266 → NodeMCU 1.0 (ESP-12E Module)
+6. Tools → Manage Libraries → install "PubSubClient" and "Servo"
+7. Tools → Port → select COM port (e.g. COM3)
+8. Click Upload (→ arrow)
+9. Tools → Serial Monitor → 115200 baud
+   MUST SEE: "WiFi connected" and "MQTT connect... ok"
+
+OPTION B — Command line (no IDE GUI — best for repeat uploads)
+--------------------------------------------------------------
+1. Plug ESP8266 via USB.
+2. Wait for one-time toolchain download to finish (first run only).
+3. In Cursor terminal:
+     cd C:\Users\RCA\Desktop\tempula\robotics_ne
+     .\scripts\flash-esp8266.ps1
+   Or specify port:
+     .\scripts\flash-esp8266.ps1 -Port COM3
+
+================================================================================
+FULL TEST ORDER (after ESP is flashed)
+================================================================================
+
+STEP 0 — Start MQTT broker
+  cd C:\Users\RCA\Desktop\tempula\robotics_ne
+  .\scripts\start-mosquitto.ps1
+
+STEP 1 — Enroll speaker (once)
+  .\venv312\Scripts\Activate.ps1
+  python -m src.enroll
+  → 10-30 samples, press S, remember name (e.g. andrew)
+
+STEP 2 — Validate
+  python -m src.validate_system
+
+STEP 3 — Start backend + dashboard
+  .\scripts\start-system.ps1
+  → open http://localhost:8080
+
+STEP 4 — Run vision node
+  .\venv312\Scripts\Activate.ps1
+  python -m src.vision_node --name andrew
+
+STEP 5 — Test checklist
+  [ ] ESP serial: WiFi + MQTT OK
+  [ ] Green box only on enrolled speaker
+  [ ] Servo pans left/right when you move
+  [ ] Dashboard updates
+  [ ] logs\operations_*.csv created
+
+================================================================================

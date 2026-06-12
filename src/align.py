@@ -23,7 +23,8 @@ from typing import Tuple
 import cv2
 import numpy as np
 
-# Import from your existing script
+from .camera import correct_frame_from_config, open_camera
+from .config import load_config
 from .haar_5pt import Haar5ptDetector, align_face_5pt
 
 
@@ -47,11 +48,13 @@ def _safe_imshow(win: str, img: np.ndarray):
 
 
 def main(
-    cam_index: int = 1,
+    cam_index: int | None = None,
     out_size: Tuple[int, int] = (112, 112),
-    mirror: bool = True,
+    mirror: bool = False,
 ):
-    cap = cv2.VideoCapture(cam_index)
+    cfg = load_config()
+    cam_index = cfg.camera_index if cam_index is None else cam_index
+    cap = open_camera(cam_index)
 
     det = Haar5ptDetector(
         min_size=(70, 70),
@@ -79,6 +82,7 @@ def main(
         if not ok:
             break
 
+        frame = correct_frame_from_config(frame, cfg)
         if mirror:
             frame = cv2.flip(frame, 1)
 

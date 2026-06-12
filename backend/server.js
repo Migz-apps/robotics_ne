@@ -4,21 +4,29 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// Configuration
-// On VPS, we connect to local mosquitto. On PC, we might want to connect to VPS IP?
-// For Backend (running on VPS), it should connect to localhost (its own mosquitto).
-const MQTT_BROKER = 'mqtt://157.173.101.159';
-const TEAM_ID = 'team313';
-const MQTT_TOPIC_VS = `vision/${TEAM_ID}/movement`;
-const WS_PORT = 9002;
-const HTTP_PORT = 8080; // Port for Dashboard HTML
+// Load shared config.json from project root
+const CONFIG_PATH = path.join(__dirname, '..', 'config.json');
+let config = {
+    team_id: 'team313',
+    mqtt_broker: '157.173.101.159',
+    mqtt_port: 1883,
+    ws_port: 9002,
+    http_port: 8080,
+};
+if (fs.existsSync(CONFIG_PATH)) {
+    config = { ...config, ...JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')) };
+}
 
-// --- MQTT Client ---
+const MQTT_BROKER = `mqtt://${config.mqtt_broker}:${config.mqtt_port}`;
+const MQTT_TOPIC_VS = `vision/${config.team_id}/movement`;
+const WS_PORT = config.ws_port;
+const HTTP_PORT = config.http_port;
+
 console.log(`Connecting to MQTT Broker: ${MQTT_BROKER}...`);
 const mqttClient = mqtt.connect(MQTT_BROKER);
 
 mqttClient.on('connect', () => {
-    console.log(`Connected to MQTT Broker.`);
+    console.log('Connected to MQTT Broker.');
     mqttClient.subscribe(MQTT_TOPIC_VS, (err) => {
         if (!err) {
             console.log(`Subscribed to topic: ${MQTT_TOPIC_VS}`);
@@ -31,25 +39,16 @@ mqttClient.on('connect', () => {
 mqttClient.on('message', (topic, message) => {
     const msgString = message.toString();
     console.log(`MQTT IN [${topic}]: ${msgString}`);
-
-    // Broadcast to all WS clients
     broadcast(msgString);
 });
 
-// --- WebSocket Server ---
 const wss = new WebSocket.Server({ port: WS_PORT });
-
 console.log(`WebSocket Server started on port ${WS_PORT}`);
 
 wss.on('connection', (ws) => {
     console.log('New WebSocket Client connected');
-
-    // Send initial status
     ws.send(JSON.stringify({ type: 'STATUS', message: 'Connected to Vision Backend' }));
-
-    ws.on('close', () => {
-        console.log('Client disconnected');
-    });
+    ws.on('close', () => console.log('Client disconnected'));
 });
 
 function broadcast(data) {
@@ -60,7 +59,6 @@ function broadcast(data) {
     });
 }
 
-// --- HTTP Server for Dashboard ---
 const server = http.createServer((req, res) => {
     if (req.url === '/' || req.url === '/index.html') {
         fs.readFile(path.join(__dirname, '../dashboard/index.html'), (err, data) => {
@@ -72,6 +70,9 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.end(data);
         });
+    } else if (req.url === '/config.json') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ws_port: WS_PORT, http_port: HTTP_PORT, team_id: config.team_id }));
     } else {
         res.writeHead(404);
         res.end('Not Found');
@@ -79,5 +80,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(HTTP_PORT, () => {
-    console.log(`HTTP Dashboard running on http://localhost:${HTTP_PORT}`);
+    console.log(`HTTP Dashboard: http://localhost:${HTTP_PORT}`);
 });

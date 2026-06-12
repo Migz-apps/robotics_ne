@@ -19,15 +19,7 @@ from typing import Optional, Tuple, List
 import cv2
 import numpy as np
 
-try:
-    import mediapipe as mp
-    from mediapipe import solutions as mp_solutions
-    # Ensure mp.solutions is available if it wasn't attached
-    if not hasattr(mp, "solutions"):
-        mp.solutions = mp_solutions
-except Exception as e:
-    mp = None
-    _MP_IMPORT_ERROR = e
+from .mediapipe_face import create_face_mesh
 
 
 # -------------------------
@@ -190,13 +182,7 @@ class Haar5ptDetector:
         if self.face_cascade.empty():
             raise RuntimeError(f"Failed to load Haar cascade: {haar_xml}")
 
-        if mp is None:
-            raise RuntimeError(
-                f"mediapipe import failed: {_MP_IMPORT_ERROR}\n"
-                f"Install: pip install mediapipe==0.10.21"
-            )
-
-        self.mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
+        self.mp_face_mesh = create_face_mesh(
             static_image_mode=False,
             max_num_faces=10,
             refine_landmarks=True,

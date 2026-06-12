@@ -1,0 +1,19 @@
+RUN — use venv
+==============
+
+  cd C:\Users\RCA\Desktop\tempula\robotics_ne
+  .\venv\Scripts\Activate.ps1
+
+ENROLL
+  python -m src.enroll --name Miguel
+  SPACE x10+  then  S
+
+START SYSTEM
+  .\scripts\start-system.ps1
+  http://localhost:8080
+
+TRACK
+  python -m src.vision_node --name Miguel
+
+STOP SERVO
+  .\scripts\stop-servo.ps1

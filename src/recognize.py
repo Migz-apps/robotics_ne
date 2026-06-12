@@ -28,16 +28,8 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 
-try:
-    import mediapipe as mp
-    from mediapipe import solutions as mp_solutions
-    if not hasattr(mp, "solutions"):
-        mp.solutions = mp_solutions
-except Exception as e:
-    mp = None
-    _MP_IMPORT_ERROR = e
-
 from .haar_5pt import align_face_5pt
+from .mediapipe_face import create_face_mesh
 
 
 # -------------------------
@@ -220,12 +212,7 @@ class HaarFaceMesh5pt:
         self.face_cascade = cv2.CascadeClassifier(haar_xml)
         if self.face_cascade.empty():
             raise RuntimeError(f"Failed to load Haar cascade: {haar_xml}")
-        if mp is None:
-            raise RuntimeError(
-                f"mediapipe import failed: {_MP_IMPORT_ERROR}\n"
-                f"Install: pip install mediapipe==0.10.21"
-            )
-        self.mesh = mp.solutions.face_mesh.FaceMesh(
+        self.mesh = create_face_mesh(
             static_image_mode=False,
             max_num_faces=1,
             refine_landmarks=True,

@@ -1,0 +1,49 @@
+ESP8266 PORT NOT SHOWING — FIX
+==============================
+
+Your PC currently shows NO COM ports. Arduino cannot upload until Windows sees the board.
+
+STEP 1 — Physical
+-----------------
+- Use a DATA USB cable (not charge-only)
+- Plug directly into PC (not a bad hub)
+- ESP8266 power LED should be on
+
+STEP 2 — Which chip? (CH340 vs CP210x)
+--------------------------------------
+Run (with board plugged in):
+  .\scripts\detect-serial-chip.ps1
+
+| What Device Manager shows        | Chip    | USB IDs      |
+|----------------------------------|---------|--------------|
+| USB-SERIAL CH340                 | CH340   | VID 1A86     |
+| Silicon Labs CP210x USB to UART  | CP210x  | VID 10C4     |
+| Unknown USB (Descriptor Failed)  | neither | bad cable    |
+
+Both drivers are installed on this PC (CH340 + CP210x).
+If the board still has no COM port, the problem is usually the cable, not the driver.
+
+STEP 2b — Manual driver check
+-----------------------------
+1. Win+X → Device Manager
+2. Ports (COM & LPT) or Other devices
+3. Yellow warning → Update driver → Browse → Let me pick → CH340 or CP210x
+
+STEP 3 — Verify port in PowerShell
+----------------------------------
+  [System.IO.Ports.SerialPort]::getportnames()
+
+Should show e.g. COM3, COM4.
+
+STEP 4 — Arduino IDE
+--------------------
+- Restart Arduino IDE after driver installs
+- Tools → Port → select COMx
+- If Port menu is grayed out: board not detected yet
+
+STEP 5 — Upload via command line (when COM port appears)
+--------------------------------------------------------
+  cd C:\Users\RCA\Desktop\tempula\robotics_ne
+  .\scripts\flash-esp8266.ps1 -Port COM3
+
+(REPLACE COM3 with your port)

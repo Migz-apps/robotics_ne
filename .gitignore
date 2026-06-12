@@ -1,13 +1,37 @@
-*.onnx
-*.zip
-venv/Lib/site-packages/absl/flags/__pycache__/_helpers.cpython-313.pyc
+# Arduino CLI local data
+.arduino15/
+arduino-cli.yaml
+
+# Python
+.env/
 venv/
 venv310/
-db/
-enroll/
-node_modules/
-*.pdf
-dp.txt
-*.txt
+venv312/
 __pycache__/
 *.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+
+# Runtime data & evidence
+logs/*.csv
+logs/*.jsonl
+logs/*_actions_*.txt
+data/enroll/
+data/db/*.npz
+data/db/*.json
+
+# Models (large binaries)
+models/*.onnx
+
+# IDE / OS
+.idea/
+.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# Misc
+*.pdf
+*.zip
+dp.txt

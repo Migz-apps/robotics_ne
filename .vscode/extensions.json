@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "platformio.platformio-ide",
+    "vsciot-vscode.vscode-arduino",
+    "ms-vscode.cpptools",
+    "ms-vscode.cpptools-extension-pack"
+  ],
+  "unwantedRecommendations": []
+}

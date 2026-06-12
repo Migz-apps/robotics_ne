@@ -57,12 +57,8 @@ class ArcFaceEmbedderONNX:
         self.out_name = self.sess.get_outputs()[0].name
         if debug:
             print("[embed] model loaded")
-            print(
-                "[embed] input:",
-                self.sess.get_inputs()[0].shape,
-                "print([embed] output:",
-                self.sess.get_outputs()[0].shape,
-            )
+            print("[embed] input:", self.sess.get_inputs()[0].shape)
+            print("[embed] output:", self.sess.get_outputs()[0].shape)
 
     def _preprocess(self, aligned_bgr: np.ndarray) -> np.ndarray:
         if aligned_bgr.shape[:2] != (self.in_h, self.in_w):

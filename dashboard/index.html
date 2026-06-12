@@ -224,8 +224,11 @@
     </div>
 
     <script>
-        // Connect to Backend running on PC
-        const wsUrl = `ws://10.11.74.50:9002`;
+        // WebSocket host: ?ws_host=IP or same host as dashboard
+        const params = new URLSearchParams(window.location.search);
+        const wsHost = params.get('ws_host') || window.location.hostname || 'localhost';
+        const wsPort = params.get('ws_port') || '9002';
+        const wsUrl = `ws://${wsHost}:${wsPort}`;
         let ws;
 
         const statusEl = document.getElementById('movement-status');
@@ -284,22 +287,7 @@
             // Update Target Info
             if (data.target) targetEl.textContent = `Target: ${data.target}`;
 
-            // Update Face Image - only update if new image received
             if (data.face_image) {
-                //download image
-                try{
-                function downloadURI(uri, name) {
-                    var link = document.createElement('a');
-                    link.download = name;
-                    link.href = uri;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
-            }catch(e){
-                console.log(e);
-            }
-                downloadURI('data:image/jpeg;base64,' + data.face_image, 'face.jpg');
                 faceImageEl.src = 'data:image/jpeg;base64,' + data.face_image;
                 faceImageEl.style.display = 'block';
                 noFaceMsgEl.style.display = 'none';
@@ -324,13 +312,18 @@
                 lockEl.style.border = "1px solid orange";
             }
 
-            // Visual feedback based on status
-            if (data.status === 'MOVE_LEFT') {
-                statusEl.style.color = '#ff0055'; // Red
-            } else if (data.status === 'MOVE_RIGHT') {
-                statusEl.style.color = '#00d4ff'; // Blue
-            } else if (data.status === 'CENTERED') {
-                statusEl.style.color = '#00ff9d'; // Green
+            const leftStatuses = ['MOVE_LEFT', 'MOVED_LEFT', 'LEFT'];
+            const rightStatuses = ['MOVE_RIGHT', 'MOVED_RIGHT', 'RIGHT'];
+            const stopStatuses = ['STOPPED', 'STOP', 'CENTERED'];
+            const scanStatuses = ['SCAN', 'NO_FACE', 'OUT_OF_FRAME'];
+            if (leftStatuses.includes(data.status)) {
+                statusEl.style.color = '#ff0055';
+            } else if (rightStatuses.includes(data.status)) {
+                statusEl.style.color = '#00d4ff';
+            } else if (stopStatuses.includes(data.status)) {
+                statusEl.style.color = '#00ff9d';
+            } else if (scanStatuses.includes(data.status)) {
+                statusEl.style.color = 'orange';
             } else {
                 statusEl.style.color = '#888';
             }
@@ -339,9 +332,14 @@
             void statusEl.parentElement.offsetWidth; // Trigger reflow
             statusEl.parentElement.classList.add('active-update');
 
-            if (data.confidence) confEl.textContent = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
+            if (data.confidence !== undefined) {
+                confEl.textContent = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
+            }
 
-            const date = new Date();
+            const logLine = `[${data.status}] ${data.target || ''} conf=${data.confidence ?? '--'} faces=${data.faces_in_frame ?? 0}`;
+            addLog(logLine);
+
+            const date = new Date((data.timestamp || Date.now() / 1000) * 1000);
             timeEl.textContent = date.toLocaleTimeString();
         }
 

@@ -22,13 +22,18 @@ Controls:
 """
 
 from __future__ import annotations
+import argparse
 import json
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import cv2
 import numpy as np
+from .camera import correct_frame_from_config, open_camera
+from .config import load_config
+from .env_check import check_python_and_mediapipe
 from .haar_5pt import Haar5ptDetector, align_face_5pt
 from .embed import ArcFaceEmbedderONNX
 
@@ -43,6 +48,8 @@ class EnrollConfig:
     save_crops: bool = True
     crops_dir: Path = Path("data/enroll")
     samples_needed: int = 15
+    samples_min: int = 10
+    samples_max: int = 30
     auto_capture_every_s: float = 0.25
     max_existing_crops: int = 300
     # UI
@@ -168,17 +175,38 @@ def draw_status(
 # Main
 # -------------------------
 def main():
-    cfg = EnrollConfig()
+    check_python_and_mediapipe(exit_on_fail=True)
+
+    parser = argparse.ArgumentParser(description="Enroll speaker face template")
+    parser.add_argument("--name", type=str, default=None, help="Speaker name (or enter at prompt)")
+    parser.add_argument("--camera-index", type=int, default=None, help="Override config camera_index")
+    args = parser.parse_args()
+
+    sys_cfg = load_config()
+    camera_index = args.camera_index if args.camera_index is not None else sys_cfg.camera_index
+    cfg = EnrollConfig(
+        out_db_npz=sys_cfg.resolve(sys_cfg.face_db_path),
+        out_db_json=sys_cfg.resolve(sys_cfg.face_db_path).parent / "face_db.json",
+        samples_needed=sys_cfg.enroll_samples_default,
+        samples_min=sys_cfg.enroll_samples_min,
+        samples_max=sys_cfg.enroll_samples_max,
+    )
     ensure_dirs(cfg)
 
-    name = input("Enter person name to enroll (e.g., Alice): ").strip()
+    name = (args.name or input("Enter person name to enroll (e.g., Alice): ").strip()).strip()
     if not name:
         print("No name provided. Exiting.")
         return
 
     det = Haar5ptDetector(min_size=(70, 70), smooth_alpha=0.80, debug=False)
+    model_path = sys_cfg.resolve(sys_cfg.model_path)
+    if not model_path.exists():
+        print(f"ERROR: ONNX model not found at {model_path}")
+        print("See models/README.md for setup instructions.")
+        return
+
     emb = ArcFaceEmbedderONNX(
-        model_path="models/embedder_arcface.onnx",
+        model_path=str(model_path),
         input_size=(112, 112),
         debug=False,
     )
@@ -200,7 +228,9 @@ def main():
     auto = False
     last_auto = 0.0
 
-    cap = cv2.VideoCapture(0)
+    print(f"Camera index: {camera_index} | rotate={sys_cfg.camera_rotate}")
+    print("Controls: SPACE=capture  a=auto  s=save  r=reset new  q=quit")
+    cap = open_camera(camera_index)
     if not cap.isOpened():
         raise RuntimeError("Failed to open camera.")
 
@@ -227,6 +257,7 @@ def main():
             if not ok:
                 break
 
+            frame = correct_frame_from_config(frame, sys_cfg)
             vis = frame.copy()
             faces = det.detect(frame, max_faces=1)
             aligned: Optional[np.ndarray] = None
@@ -307,12 +338,19 @@ def main():
                         cv2.imwrite(str(fn), aligned)
             if key == ord("s"):
                 total = len(base_samples) + len(new_samples)
-                if total < max(3, cfg.samples_needed // 2):
-                    status_msg = f"Not enough total samples to save (have {total})."
+                if total < cfg.samples_min:
+                    status_msg = (
+                        f"Need at least {cfg.samples_min} samples (have {total}). "
+                        f"Assessment requires {cfg.samples_min}-{cfg.samples_max}."
+                    )
                     continue
+                if total > cfg.samples_max:
+                    status_msg = f"Using first {cfg.samples_max} of {total} samples for template."
+                    all_for_template = (base_samples + new_samples)[: cfg.samples_max]
+                else:
+                    all_for_template = base_samples + new_samples
 
-                all_samples = base_samples + new_samples
-                template = mean_embedding(all_samples)
+                template = mean_embedding(all_for_template)
                 db[name] = template
 
                 meta = {
@@ -321,7 +359,8 @@ def main():
                     "names": sorted(db.keys()),
                     "samples_existing_used": int(len(base_samples)),
                     "samples_new_used": int(len(new_samples)),
-                    "samples_total_used": int(len(all_samples)),
+                    "samples_total_used": int(len(all_for_template)),
+                    "samples_required_range": [cfg.samples_min, cfg.samples_max],
                     "note": "Embeddings are L2-normalized vectors. Matching uses cosine similarity.",
                 }
 

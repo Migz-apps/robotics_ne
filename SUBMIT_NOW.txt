@@ -1,0 +1,32 @@
+SUBMISSION — DO THESE IN ORDER (MINUTES)
+=========================================
+
+DRIVER: CP210x INSTALLED OK (replug ESP8266 USB now!)
+
+1) FIND PORT (10 sec)
+   [System.IO.Ports.SerialPort]::getportnames()
+   New COM? e.g. COM4 → use below
+
+2) FLASH ESP (30 sec)
+   cd C:\Users\RCA\Desktop\tempula\robotics_ne
+   .\scripts\flash-esp8266.ps1 -Port COM4
+
+3) ENROLL FACE (2 min) — REQUIRED
+   .\scripts\install-deps.ps1
+   .\scripts\enroll.ps1 -Name yourname
+   Name: yourname | 10 samples SPACE | press S
+
+4) START SYSTEM
+   .\scripts\start-system.ps1
+   Browser: http://localhost:8080
+
+5) RUN VISION NODE
+   .\scripts\run-vision.ps1 -Name yourname
+
+6) SHOW ASSESSORS
+   - Green box on you only
+   - Dashboard moving
+   - logs\operations_*.csv
+   - SYSTEM_ARCHITECTURE.png + DATA_FLOW.png
+
+IF NO COM PORT: wrong cable or board uses CH340 not CP210 — try another USB port/cable.

@@ -1,0 +1,58 @@
+BENAX SPEAKER TRACKING — READY TO TEST
+======================================
+
+PATHS ON YOUR PC
+----------------
+Python project:     C:\Users\RCA\Desktop\tempula\robotics_ne
+ESP8266 board core: C:\Users\RCA\Downloads\esp8266          (Arduino compile tools — NOT the sketch)
+ESP8266 sketch:     C:\Users\RCA\Downloads\vision_servo\vision_servo.ino   (OPEN THIS in Arduino IDE)
+Also in project:    robotics_ne\esp8266\vision_servo\vision_servo.ino     (same file, kept in sync)
+
+NETWORK
+-------
+Wi-Fi (ESP):        kobbie-mainoo
+MQTT broker (PC):   192.168.0.188:1883  (ESP uses this IP)
+MQTT broker (PC apps): localhost:1883
+Dashboard:          http://localhost:8080
+
+STATUS
+------
+[OK] Mosquitto listening on 0.0.0.0:1883 (use scripts\start-mosquitto.ps1 after reboot)
+[OK] Firmware synced to Downloads\vision_servo\vision_servo.ino
+[ ]  Face enrollment — YOU MUST DO (python -m src.enroll)
+[ ]  ESP8266 flashed from Downloads\vision_servo\vision_servo.ino
+
+ARDUINO IDE SETUP (your Downloads esp8266 core)
+-----------------------------------------------
+1. Board: NodeMCU 1.0 (ESP-12E Module)
+2. If board missing: copy or link
+     C:\Users\RCA\Downloads\esp8266\hardware\esp8266\3.1.2
+   to
+     %LOCALAPPDATA%\Arduino15\packages\esp8266\hardware\esp8266\3.1.2
+3. Libraries: PubSubClient, Servo
+4. Open sketch: C:\Users\RCA\Downloads\vision_servo\vision_servo.ino
+5. Upload → Serial Monitor 115200 → WiFi connected + MQTT ok
+
+YOUR 3 STEPS TO TEST
+--------------------
+
+STEP 1 — Flash ESP (once)
+  Arduino IDE → open C:\Users\RCA\Downloads\vision_servo\vision_servo.ino → Upload
+
+STEP 2 — Install + enroll (once)
+  cd C:\Users\RCA\Desktop\tempula\robotics_ne
+  .\scripts\install-deps.ps1
+  .\scripts\enroll.ps1 -Name Miguel
+  (SPACE x10+, press S)
+
+STEP 3 — Run system
+  .\scripts\start-system.ps1
+  .\scripts\run-vision.ps1 -Name Miguel
+
+TEST CHECKLIST
+--------------
+[ ] Serial: ESP WiFi + MQTT connected
+[ ] Only enrolled speaker = green box
+[ ] Move left/right → servo pans
+[ ] Dashboard http://localhost:8080 updates
+[ ] logs\operations_*.csv has data
