@@ -4,353 +4,493 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.A.R.A. System Dashboard</title>
-    <!-- Use Google Fonts for premium look -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
-        rel="stylesheet">
+    <title>BENAX Speaker Tracking</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-bg: #0a0a12;
-            --panel-bg: #13131f;
-            --accent-color: #00d4ff;
-            /* Neon Blue */
-            --alert-color: #ff0055;
-            /* Neon Red */
-            --success-color: #00ff9d;
-            /* Neon Green */
-            --text-color: #e0e0e0;
+            --bg: #070b14;
+            --surface: #0f1624;
+            --surface-2: #151f32;
+            --border: rgba(120, 160, 255, 0.12);
+            --text: #e8eef9;
+            --muted: #8b9bb8;
+            --accent: #4cc9f0;
+            --green: #2dd4a8;
+            --orange: #f59e0b;
+            --red: #f87171;
+            --purple: #a78bfa;
         }
+
+        * { box-sizing: border-box; }
 
         body {
-            background-color: var(--primary-bg);
-            color: var(--text-color);
-            font-family: 'Roboto', sans-serif;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             min-height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Ambient Background */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radical-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.05), transparent 70%);
-            z-index: -1;
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 10% 10%, rgba(76, 201, 240, 0.08), transparent 35%),
+                radial-gradient(circle at 90% 0%, rgba(167, 139, 250, 0.08), transparent 30%),
+                var(--bg);
         }
 
         header {
-            width: 100%;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(19, 19, 31, 0.8);
-            backdrop-filter: blur(10px);
-            position: fixed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 28px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(7, 11, 20, 0.85);
+            backdrop-filter: blur(12px);
+            position: sticky;
             top: 0;
+            z-index: 10;
         }
 
-        h1 {
-            font-family: 'Orbitron', sans-serif;
+        .brand h1 {
             margin: 0;
-            color: var(--accent-color);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            font-size: 1.35rem;
+            letter-spacing: 0.04em;
         }
 
-        .container {
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .header-badges {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .badge.ok { color: var(--green); border-color: rgba(45, 212, 168, 0.35); }
+        .badge.bad { color: var(--red); border-color: rgba(248, 113, 113, 0.35); }
+
+        main {
+            padding: 24px 28px 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .grid-top {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            width: 90%;
-            max-width: 1200px;
-            margin-top: 100px;
+            grid-template-columns: 1.1fr 1fr 0.9fr;
+            gap: 18px;
         }
 
-        .card {
-            background: var(--panel-bg);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-            transition: transform 0.3s ease;
+        @media (max-width: 980px) {
+            .grid-top { grid-template-columns: 1fr; }
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-color);
+        .panel {
+            background: linear-gradient(180deg, var(--surface), var(--surface-2));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
         }
 
-        .card h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 20px;
-        }
-
-        .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin: 10px 0;
-        }
-
-        #movement-status {
-            color: var(--success-color);
-        }
-
-        #timestamp {
-            font-size: 1.5rem;
-            color: #888;
-        }
-
-        #connection-status {
-            font-size: 1.2rem;
-            color: #888;
-        }
-
-        /* Status Indicators */
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
+        .panel h2 {
+            margin: 0 0 14px;
+            font-size: 0.82rem;
             text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
         }
 
-        .connected {
-            background: rgba(0, 255, 157, 0.1);
-            color: var(--success-color);
-            border: 1px solid var(--success-color);
+        .face-wrap {
+            min-height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px dashed var(--border);
+            overflow: hidden;
         }
 
-        .disconnected {
-            background: rgba(255, 0, 85, 0.1);
-            color: var(--alert-color);
-            border: 1px solid var(--alert-color);
+        #face-image {
+            max-width: 100%;
+            max-height: 280px;
+            border-radius: 10px;
+            display: none;
+            border: 2px solid rgba(76, 201, 240, 0.45);
         }
 
-        /* Animation for movement */
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.7);
-            }
-
-            70% {
-                transform: scale(1.05);
-                box-shadow: 0 0 0 10px rgba(0, 212, 255, 0);
-            }
-
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(0, 212, 255, 0);
-            }
+        #no-face-msg {
+            color: var(--muted);
+            font-size: 0.95rem;
         }
 
-        .active-update {
-            animation: pulse 0.5s ease-out;
+        .status-big {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 8px 0;
+            line-height: 1.1;
         }
 
-        #log-panel {
-            grid-column: 1 / -1;
+        .meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .pill {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+        }
+
+        .pill.locked { color: var(--green); border-color: rgba(45, 212, 168, 0.35); }
+        .pill.search { color: var(--orange); border-color: rgba(245, 158, 11, 0.35); }
+
+        .stat-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+        }
+
+        .stat-item span:last-child {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+        }
+
+        .logs-panel {
+            margin-top: 18px;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .logs-header small {
+            color: var(--muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .log-table-wrap {
+            max-height: 340px;
+            overflow: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.22);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #111827;
+            color: var(--muted);
             text-align: left;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 0.9rem;
-            color: #aaa;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            z-index: 1;
         }
 
-        .log-entry {
-            margin: 2px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: top;
+        }
+
+        tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+        tbody tr.new-row { animation: flash 0.8s ease; }
+
+        @keyframes flash {
+            from { background: rgba(76, 201, 240, 0.18); }
+            to { background: transparent; }
+        }
+
+        .cmd { font-weight: 600; }
+        .cmd.left { color: var(--red); }
+        .cmd.right { color: var(--accent); }
+        .cmd.stop { color: var(--green); }
+        .cmd.scan { color: var(--orange); }
+        .cmd.other { color: var(--purple); }
+
+        .empty-logs {
+            padding: 28px;
+            text-align: center;
+            color: var(--muted);
         }
     </style>
 </head>
 
 <body>
-
     <header>
-        <h1>S.A.R.A. Vision Control</h1>
-        <div style="margin-top: 5px; font-size: 0.8rem; color: #666;">Distributed Actuation System • Team 313</div>
+        <div class="brand">
+            <h1>BENAX Speaker Tracking</h1>
+            <p>Team 313 • Vision lock • Servo follow • Live operations log</p>
+        </div>
+        <div class="header-badges">
+            <span id="mqtt-badge" class="badge bad">MQTT …</span>
+            <span id="connection-status" class="badge bad">WS Offline</span>
+        </div>
     </header>
 
-    <div class="container">
-        <!-- Face Picture Card -->
-        <div class="card">
-            <h2>Face Picture</h2>
-            <div id="face-container"
-                style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
-                <img id="face-image" src="" alt="No face detected"
-                    style="max-width: 100%; max-height: 300px; border-radius: 8px; display: none; border: 2px solid var(--accent-color);" />
-                <div id="no-face-msg" style="color: #666; font-size: 1rem;">Waiting for face...</div>
+    <main>
+        <section class="grid-top">
+            <article class="panel">
+                <h2>Locked Speaker</h2>
+                <div class="face-wrap">
+                    <img id="face-image" alt="Locked face snapshot">
+                    <div id="no-face-msg">Waiting for enrolled speaker…</div>
+                </div>
+            </article>
+
+            <article class="panel">
+                <h2>Tracking</h2>
+                <div id="movement-status" class="status-big">WAITING</div>
+                <div id="target-info" class="pill">Target: —</div>
+                <div class="meta-row">
+                    <span id="lock-status" class="pill search">SEARCHING</span>
+                    <span id="confidence" class="pill">Confidence: —</span>
+                    <span id="phase-pill" class="pill">Phase: —</span>
+                </div>
+            </article>
+
+            <article class="panel">
+                <h2>System</h2>
+                <div class="stat-list">
+                    <div class="stat-item"><span>Last update</span><span id="timestamp">—</span></div>
+                    <div class="stat-item"><span>Faces in frame</span><span id="faces-count">0</span></div>
+                    <div class="stat-item"><span>Log file</span><span id="log-file">—</span></div>
+                    <div class="stat-item"><span>Events</span><span id="log-count">0</span></div>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel logs-panel">
+            <div class="logs-header">
+                <h2 style="margin:0;">Live Operations Log</h2>
+                <small id="log-status">Streaming…</small>
             </div>
-        </div>
-
-        <!-- Movement Status Card -->
-        <div class="card">
-            <h2>Tracking Status</h2>
-            <div id="movement-status" class="value">WAITING...</div>
-            <div id="target-info" style="font-size: 1.2rem; color: #aaa; margin-top: 10px;">Target: --</div>
-            <div id="lock-status" class="status-badge" style="background: #333; color: #888; margin-top: 5px;">SEARCHING
+            <div class="log-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Speaker</th>
+                            <th>Command</th>
+                            <th>Lock</th>
+                            <th>Conf</th>
+                            <th>Faces</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body">
+                        <tr><td colspan="7" class="empty-logs">Waiting for vision node events…</td></tr>
+                    </tbody>
+                </table>
             </div>
-            <div id="confidence" style="font-size: 0.9rem; color: #666; margin-top: 5px;">Confidence: --</div>
-        </div>
-
-        <!-- System State Card -->
-        <div class="card">
-            <h2>System Connection</h2>
-            <div id="connection-status" class="status-badge disconnected">Disconnected</div>
-            <div id="timestamp" class="value" style="margin-top: 20px;">--:--:--</div>
-        </div>
-
-        <!-- Log Panel -->
-        <div class="card" id="log-panel">
-            <h2>Event Log</h2>
-            <div id="logs"></div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <script>
-        // WebSocket host: ?ws_host=IP or same host as dashboard
         const params = new URLSearchParams(window.location.search);
         const wsHost = params.get('ws_host') || window.location.hostname || 'localhost';
         const wsPort = params.get('ws_port') || '9002';
         const wsUrl = `ws://${wsHost}:${wsPort}`;
-        let ws;
 
         const statusEl = document.getElementById('movement-status');
         const connEl = document.getElementById('connection-status');
+        const mqttBadge = document.getElementById('mqtt-badge');
         const timeEl = document.getElementById('timestamp');
         const confEl = document.getElementById('confidence');
-        const logsEl = document.getElementById('logs');
-
-        function connect() {
-            ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                console.log('Connected to Backend');
-                connEl.textContent = 'CONNECTED';
-                connEl.className = 'status-badge connected';
-                addLog('System connected to backend.');
-            };
-
-            ws.onclose = () => {
-                console.log('Disconnected');
-                connEl.textContent = 'DISCONNECTED';
-                connEl.className = 'status-badge disconnected';
-                addLog('Connection lost. Reconnecting...');
-                setTimeout(connect, 3000);
-            };
-
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-
-                    // Handle STATUS messages
-                    if (data.type === 'STATUS') {
-                        addLog(data.message);
-                        return;
-                    }
-
-                    // Handle MQTT Movement messages
-                    // Expected: { "status": "MOVE_LEFT", "confidence": 0.9, "timestamp": ... }
-                    if (data.status) {
-                        updateDashboard(data);
-                    }
-                } catch (e) {
-                    console.log('Non-JSON message:', event.data);
-                }
-            };
-        }
-
         const targetEl = document.getElementById('target-info');
         const lockEl = document.getElementById('lock-status');
+        const phaseEl = document.getElementById('phase-pill');
+        const facesEl = document.getElementById('faces-count');
+        const logBody = document.getElementById('log-body');
+        const logCountEl = document.getElementById('log-count');
+        const logFileEl = document.getElementById('log-file');
+        const logStatusEl = document.getElementById('log-status');
         const faceImageEl = document.getElementById('face-image');
         const noFaceMsgEl = document.getElementById('no-face-msg');
 
-        function updateDashboard(data) {
-            statusEl.textContent = data.status;
+        let logCount = 0;
+        const seenKeys = new Set();
+        const MAX_ROWS = 200;
 
-            // Update Target Info
+        function logKey(rec) {
+            return `${rec.timestamp_unix}|${rec.motor_command}|${rec.lock_state}|${rec.notes}`;
+        }
+
+        function cmdClass(cmd) {
+            const c = (cmd || '').toUpperCase();
+            if (['MOVE_LEFT', 'MOVED_LEFT', 'LEFT'].includes(c)) return 'left';
+            if (['MOVE_RIGHT', 'MOVED_RIGHT', 'RIGHT'].includes(c)) return 'right';
+            if (['STOPPED', 'STOP', 'CENTERED'].includes(c)) return 'stop';
+            if (['SCAN', 'NO_FACE', 'OUT_OF_FRAME'].includes(c)) return 'scan';
+            return 'other';
+        }
+
+        function prependLogRow(rec, animate) {
+            const key = logKey(rec);
+            if (seenKeys.has(key)) return;
+            seenKeys.add(key);
+
+            if (logBody.querySelector('.empty-logs')) {
+                logBody.innerHTML = '';
+            }
+
+            const tr = document.createElement('tr');
+            if (animate) tr.classList.add('new-row');
+            tr.innerHTML = `
+                <td>${rec.timestamp_iso || '—'}</td>
+                <td>${rec.speaker_id || '—'}</td>
+                <td class="cmd ${cmdClass(rec.motor_command)}">${rec.motor_command || '—'}</td>
+                <td>${rec.lock_state || '—'}</td>
+                <td>${rec.confidence != null ? (rec.confidence * 100).toFixed(1) + '%' : '—'}</td>
+                <td>${rec.faces_in_frame ?? '—'}</td>
+                <td>${rec.notes || ''}</td>
+            `;
+            logBody.insertBefore(tr, logBody.firstChild);
+
+            logCount += 1;
+            logCountEl.textContent = String(logCount);
+
+            while (logBody.children.length > MAX_ROWS) {
+                logBody.removeChild(logBody.lastChild);
+            }
+        }
+
+        function addLogBatch(records) {
+            records.forEach((rec) => prependLogRow(rec, false));
+        }
+
+        function updateDashboard(data) {
+            statusEl.textContent = data.status || '—';
+
             if (data.target) targetEl.textContent = `Target: ${data.target}`;
 
             if (data.face_image) {
                 faceImageEl.src = 'data:image/jpeg;base64,' + data.face_image;
                 faceImageEl.style.display = 'block';
                 noFaceMsgEl.style.display = 'none';
-            }
-            // Only clear image when target is lost (not locked)
-            else if (!data.locked) {
+            } else if (!data.locked) {
                 faceImageEl.style.display = 'none';
                 noFaceMsgEl.style.display = 'block';
             }
-            // If locked but no new image, keep showing existing image
 
-            // Update Lock Status
             if (data.locked) {
-                lockEl.textContent = "LOCKED";
-                lockEl.style.background = "rgba(0, 255, 157, 0.2)";
-                lockEl.style.color = "#00ff9d";
-                lockEl.style.border = "1px solid #00ff9d";
+                lockEl.textContent = 'LOCKED';
+                lockEl.className = 'pill locked';
             } else {
-                lockEl.textContent = "SEARCHING";
-                lockEl.style.background = "rgba(255, 165, 0, 0.2)";
-                lockEl.style.color = "orange";
-                lockEl.style.border = "1px solid orange";
+                lockEl.textContent = 'SEARCHING';
+                lockEl.className = 'pill search';
             }
 
-            const leftStatuses = ['MOVE_LEFT', 'MOVED_LEFT', 'LEFT'];
-            const rightStatuses = ['MOVE_RIGHT', 'MOVED_RIGHT', 'RIGHT'];
-            const stopStatuses = ['STOPPED', 'STOP', 'CENTERED'];
-            const scanStatuses = ['SCAN', 'NO_FACE', 'OUT_OF_FRAME'];
-            if (leftStatuses.includes(data.status)) {
-                statusEl.style.color = '#ff0055';
-            } else if (rightStatuses.includes(data.status)) {
-                statusEl.style.color = '#00d4ff';
-            } else if (stopStatuses.includes(data.status)) {
-                statusEl.style.color = '#00ff9d';
-            } else if (scanStatuses.includes(data.status)) {
-                statusEl.style.color = 'orange';
-            } else {
-                statusEl.style.color = '#888';
-            }
-
-            statusEl.parentElement.classList.remove('active-update');
-            void statusEl.parentElement.offsetWidth; // Trigger reflow
-            statusEl.parentElement.classList.add('active-update');
-
+            if (data.phase) phaseEl.textContent = `Phase: ${data.phase}`;
             if (data.confidence !== undefined) {
                 confEl.textContent = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
             }
+            if (data.faces_in_frame !== undefined) {
+                facesEl.textContent = String(data.faces_in_frame);
+            }
 
-            const logLine = `[${data.status}] ${data.target || ''} conf=${data.confidence ?? '--'} faces=${data.faces_in_frame ?? 0}`;
-            addLog(logLine);
+            const cls = cmdClass(data.status);
+            statusEl.style.color = ({
+                left: '#f87171',
+                right: '#4cc9f0',
+                stop: '#2dd4a8',
+                scan: '#f59e0b',
+                other: '#a78bfa'
+            })[cls];
+
+            mqttBadge.textContent = 'MQTT Live';
+            mqttBadge.className = 'badge ok';
 
             const date = new Date((data.timestamp || Date.now() / 1000) * 1000);
             timeEl.textContent = date.toLocaleTimeString();
         }
 
-        function addLog(msg) {
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            logsEl.insertBefore(entry, logsEl.firstChild);
+        function connect() {
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                connEl.textContent = 'WS Online';
+                connEl.className = 'badge ok';
+                logStatusEl.textContent = 'Streaming live logs';
+            };
+
+            ws.onclose = () => {
+                connEl.textContent = 'WS Offline';
+                connEl.className = 'badge bad';
+                logStatusEl.textContent = 'Reconnecting…';
+                setTimeout(connect, 2500);
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'STATUS') return;
+
+                    if (data.type === 'LOG_BATCH') {
+                        addLogBatch(data.records || []);
+                        return;
+                    }
+
+                    if (data.type === 'LOG' && data.record) {
+                        prependLogRow(data.record, true);
+                        return;
+                    }
+
+                    if (data.type === 'MOVEMENT' && data.payload) {
+                        updateDashboard(data.payload);
+                        return;
+                    }
+
+                    if (data.status) {
+                        updateDashboard(data);
+                    }
+                } catch (e) {
+                    console.warn('Bad message', event.data);
+                }
+            };
         }
 
-        // Init
+        fetch('/api/logs/recent')
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.file) logFileEl.textContent = data.file;
+                if (data.records?.length) addLogBatch(data.records);
+            })
+            .catch(() => {});
+
         connect();
     </script>
 </body>
