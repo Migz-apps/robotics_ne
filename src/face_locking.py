@@ -156,7 +156,8 @@ class FaceLockSystem:
         target_sim = self.last_confidence
         tracked_face_idx = -1
 
-        if self.state == LockState.LOCKED and self.last_target_box is not None:
+        # Proximity-only tracking while lost causes STOPPED instead of SCAN on the servo.
+        if self.state == LockState.LOCKED and self.last_target_box is not None and self.lost_frames == 0:
             min_dist = float("inf")
             for i, f in enumerate(faces):
                 dist = bbox_center_dist((f.x1, f.y1, f.x2, f.y2), self.last_target_box)

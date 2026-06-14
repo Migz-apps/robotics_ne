@@ -206,6 +206,9 @@ class VisionNode:
                     self.motion.reset_smooth()
                 motor_cmd = self.motion.command_without_target(tracking)
 
+            if result.target_face is None and result.lost_frames > 0:
+                motor_cmd = MotorCommand.SCAN
+
             lock_label = self._lock_state_label()
             cv2.putText(
                 vis,

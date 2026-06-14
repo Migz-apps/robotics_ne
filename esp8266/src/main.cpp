@@ -3,9 +3,9 @@
 #include <PubSubClient.h>
 #include <Servo.h>
 
-const char* ssid = "kobbie-mainoo";
-const char* password = "composure.";
-const char* mqtt_server = "192.168.0.188";
+const char* ssid = "EdNet";
+const char* password = "Huawei@123";
+const char* mqtt_server = "10.11.72.240";
 const int mqtt_port = 1883;
 const char* client_id = "esp8266_team313";
 const char* topic_movement = "vision/team313/movement";
@@ -27,11 +27,26 @@ const unsigned long FACE_TIMEOUT_MS = 2000;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-bool containsAny(const String& msg, const char* a, const char* b = nullptr, const char* c = nullptr) {
+bool containsAny(const String& msg, const char* a, const char* b = nullptr, const char* c = nullptr, const char* d = nullptr) {
   if (msg.indexOf(a) >= 0) return true;
   if (b && msg.indexOf(b) >= 0) return true;
   if (c && msg.indexOf(c) >= 0) return true;
+  if (d && msg.indexOf(d) >= 0) return true;
   return false;
+}
+
+bool jsonHasStatus(const String& msg, const char* status) {
+  String tight = String("\"status\":\"") + status + "\"";
+  String spaced = String("\"status\": \"") + status + "\"";
+  return msg.indexOf(tight) >= 0 || msg.indexOf(spaced) >= 0;
+}
+
+bool jsonLockedTrue(const String& msg) {
+  return msg.indexOf("\"locked\":true") >= 0 || msg.indexOf("\"locked\": true") >= 0;
+}
+
+bool isJsonPayload(const String& msg) {
+  return msg.indexOf("\"status\"") >= 0;
 }
 
 void setup_wifi() {
@@ -70,6 +85,30 @@ void callback(char* topic, byte* payload, unsigned int length) {
   message.reserve(length + 1);
   for (unsigned int i = 0; i < length; i++) message += (char)payload[i];
 
+  if (isJsonPayload(message)) {
+    if (jsonHasStatus(message, "MOVE_LEFT")) {
+      onFaceTracked();
+      moveServo(-SERVO_STEP);
+      return;
+    }
+    if (jsonHasStatus(message, "MOVE_RIGHT")) {
+      onFaceTracked();
+      moveServo(SERVO_STEP);
+      return;
+    }
+    if (jsonHasStatus(message, "SCAN") || jsonHasStatus(message, "NO_FACE") || jsonHasStatus(message, "OUT_OF_FRAME")) {
+      enterSearchMode();
+      return;
+    }
+    if (jsonHasStatus(message, "STOPPED") || jsonHasStatus(message, "CENTERED")) {
+      if (jsonLockedTrue(message)) {
+        onFaceTracked();
+      }
+      return;
+    }
+    return;
+  }
+
   if (containsAny(message, "MOVE_LEFT", "MOVED_LEFT", "LEFT")) {
     onFaceTracked();
     moveServo(-SERVO_STEP);
@@ -80,12 +119,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
     moveServo(SERVO_STEP);
     return;
   }
-  if (containsAny(message, "STOPPED", "STOP", "CENTERED")) {
-    onFaceTracked();
-    return;
-  }
   if (containsAny(message, "SCAN", "NO_FACE", "OUT_OF_FRAME")) {
     enterSearchMode();
+    return;
+  }
+  if (containsAny(message, "STOPPED", "CENTERED")) {
+    onFaceTracked();
+    return;
   }
 }
 

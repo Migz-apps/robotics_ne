@@ -169,6 +169,8 @@ class FollowVisionNode:
                 faces_in_frame=result.faces_in_frame,
                 confidence=result.confidence,
             )
+            if result.target_face is None and (result.lost_frames > 0 or self.had_target_once):
+                motor_cmd = MotorCommand.SCAN
 
             lock_label = self._lock_label(result)
             cv2.putText(

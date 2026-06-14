@@ -88,7 +88,7 @@ class MotionCommandGenerator:
     def command_without_target(self, tracking: TrackingState) -> MotorCommand:
         if tracking.searching:
             cmd = MotorCommand.SCAN
-        elif tracking.locked and tracking.lost_frames > 0:
+        elif tracking.lost_frames > 0:
             if tracking.lost_frames >= self.out_of_frame_frames:
                 cmd = MotorCommand.OUT_OF_FRAME
             else:

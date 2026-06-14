@@ -6,8 +6,18 @@
 param([string]$Port = "")
 
 $root = Split-Path $PSScriptRoot -Parent
+& "$PSScriptRoot\sync-mqtt-ip.ps1"
+& "$PSScriptRoot\start-mosquitto.ps1"
+New-NetFirewallRule -DisplayName "Mosquitto MQTT 1883" -Direction Inbound -Protocol TCP -LocalPort 1883 -Action Allow -Profile Any -ErrorAction SilentlyContinue | Out-Null
+
 $cli = Join-Path $root "tools\arduino-cli.exe"
 $sketch = "C:\Users\RCA\Downloads\vision_servo"
+$projectIno = Join-Path $root "esp8266\vision_servo\vision_servo.ino"
+$downloadIno = Join-Path $sketch "vision_servo.ino"
+if (Test-Path $projectIno) {
+    Copy-Item $projectIno $downloadIno -Force
+    Write-Host "Synced firmware: $projectIno -> $downloadIno" -ForegroundColor DarkGray
+}
 $fqbn = "esp8266:esp8266:nodemcuv2"
 $data = "$env:LOCALAPPDATA\Arduino15"
 & $cli config set directories.data $data 2>$null
@@ -39,5 +49,6 @@ Write-Host "Uploading to $Port ..."
 & $cli upload -p $Port --fqbn $fqbn $sketch
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+Write-Host "Upload complete." -ForegroundColor Green
 Write-Host "Opening serial monitor (115200). Press Ctrl+C to stop."
-& $cli monitor -p $Port -c $fqbn
+& $cli monitor -p $Port -b $fqbn --config baudrate=115200
